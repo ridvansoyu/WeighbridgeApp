@@ -407,7 +407,7 @@ namespace Weighbridge
         }
         #endregion
 
-        #region Helper Functions (AddKG, RemoveKG, CalculateNetWeight)
+        #region Helper Functions (AddKG, RemoveKG, AddPoint, CalculateNetWeight)
         /// <summary>
         /// Add " kg" to weight value in the textbox
         /// </summary>
@@ -430,12 +430,27 @@ namespace Weighbridge
         /// <returns></returns>
         public String RemoveKG(String weightValue)
         {
-            weightValue = Regex.Replace(weightValue, "[A-Za-z ]", "");
+            weightValue = Regex.Replace(weightValue, "[A-Za-z. ]", "");
             if(weightValue == "0")
             {
                 weightValue = String.Empty;
             }
             return weightValue;
+        }
+
+        /// <summary>
+        /// Add "." to weight value if weightValue >= 1000
+        /// </summary>
+        /// <param name="targetTextBox">Specify the target textBox.</param>
+        /// <param name="weightValue">Specify the weight value.</param>
+        public void AddPoint(TextBox targetTextBox, int weightValue)
+        {
+            CultureInfo elGR = CultureInfo.CreateSpecificCulture("el-GR");
+            if (weightValue >= 1000 || weightValue <= 1000)
+            { 
+            // Add dot and display it in netWeightTextBox
+            targetTextBox.Text = weightValue.ToString("0,0", elGR);
+            }
         }
 
         /// <summary>
@@ -447,13 +462,21 @@ namespace Weighbridge
         {
             netWeight = gross - tare;
 
-            // Format the net weight value, create CultureInfo to add a dot between every three numbers
-            CultureInfo elGR = CultureInfo.CreateSpecificCulture("el-GR");
-            // Add dot and display it in netWeightTextBox
-            netWeightTextBox.Text = netWeight.ToString("0,0", elGR) + " kg";
-            if (netWeightTextBox.Text == "00 kg")
+            if (netWeight < 1000)
             {
-                netWeightTextBox.Text = "0 kg";
+                netWeightTextBox.Text = AddKG(netWeight.ToString());
+            }
+            else
+            {
+                AddPoint(netWeightTextBox, netWeight);
+                netWeightTextBox.Text = AddKG(netWeightTextBox.Text);
+            }
+
+            if(netWeight < 0)
+            {
+                AddPoint(netWeightTextBox, netWeight);
+                netWeightTextBox.Text = AddKG(netWeightTextBox.Text);
+                MessageBox.Show("Net Tartım değeri 0'dan küçük olarak ölçüldü. Lütfen tartım değerlerinizi kontrol ediniz.");
             }
         }
         #endregion
@@ -560,21 +583,29 @@ namespace Weighbridge
 
         // THE EVENT HANDLERS IN THIS SECTION ARE NOT PREDEFINED.
         // THESE ARE WILL BE ADDED AFTER manualRadioButton IS ACTIVE.
-        private void TareWeightTextBox_Enter(object sender, EventArgs e)
-        {
-            tareWeightTextBox.Text = RemoveKG(tareWeightTextBox.Text);
-        }
-        private void TareWeightTextBox_Leave(object sender, EventArgs e)
-        {
-            tareWeightTextBox.Text = AddKG(tareWeightTextBox.Text);
-        }
         private void GrossWeightTextBox_Enter(object sender, EventArgs e)
         {
             grossWeightTextBox.Text = RemoveKG(grossWeightTextBox.Text);
         }
         private void GrossWeightTextBox_Leave(object sender, EventArgs e)
         {
+            if(grossWeightTextBox.Text != String.Empty)
+            {
+                AddPoint(grossWeightTextBox, Convert.ToInt32(grossWeightTextBox.Text));
+            }
             grossWeightTextBox.Text = AddKG(grossWeightTextBox.Text);
+        }
+        private void TareWeightTextBox_Enter(object sender, EventArgs e)
+        {
+            tareWeightTextBox.Text = RemoveKG(tareWeightTextBox.Text);
+        }
+        private void TareWeightTextBox_Leave(object sender, EventArgs e)
+        {
+            if (tareWeightTextBox.Text != String.Empty)
+            {
+                AddPoint(tareWeightTextBox, Convert.ToInt32(tareWeightTextBox.Text));
+            }
+            tareWeightTextBox.Text = AddKG(tareWeightTextBox.Text);
         }
         private void TareGrossWeightTextBox_TextChanged(object sender, EventArgs e)
         {
