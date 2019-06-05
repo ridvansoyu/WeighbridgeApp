@@ -100,6 +100,12 @@ namespace Weighbridge
                 _serialPort.Dispose();
                 _serialPort.Open();
             }
+            catch (System.IO.IOException)
+            {
+                MessageBox.Show("COM1 Bağlantı noktası bulunamadı. " +
+                                "Program açılacaktır fakat kantar verisi görüntülenmeyecektir. " +
+                                "Lütfen kabloyu ve bağlantı noktası adını kontrol edin.");
+            }
         }
         #endregion
 
@@ -415,7 +421,7 @@ namespace Weighbridge
         /// <returns></returns>
         public String AddKG(String weightValue)
         {
-            if(weightValue == String.Empty)
+            if (weightValue == String.Empty)
             {
                 weightValue = "0";
             }
@@ -431,7 +437,7 @@ namespace Weighbridge
         public String RemoveKG(String weightValue)
         {
             weightValue = Regex.Replace(weightValue, "[A-Za-z. ]", "");
-            if(weightValue == "0")
+            if (weightValue == "0")
             {
                 weightValue = String.Empty;
             }
@@ -446,10 +452,10 @@ namespace Weighbridge
         public void AddPoint(TextBox targetTextBox, int weightValue)
         {
             CultureInfo elGR = CultureInfo.CreateSpecificCulture("el-GR");
-            if (weightValue >= 1000 || weightValue <= 1000)
-            { 
-            // Add dot and display it in netWeightTextBox
-            targetTextBox.Text = weightValue.ToString("0,0", elGR);
+            if (weightValue >= 1000 || weightValue <= -1000)
+            {
+                // Add dot and display it in netWeightTextBox
+                targetTextBox.Text = weightValue.ToString("0,0", elGR);
             }
         }
 
@@ -472,10 +478,9 @@ namespace Weighbridge
                 netWeightTextBox.Text = AddKG(netWeightTextBox.Text);
             }
 
-            if(netWeight < 0)
+            if (netWeight < 0)
             {
                 AddPoint(netWeightTextBox, netWeight);
-                netWeightTextBox.Text = AddKG(netWeightTextBox.Text);
                 MessageBox.Show("Net Tartım değeri 0'dan küçük olarak ölçüldü. Lütfen tartım değerlerinizi kontrol ediniz.");
             }
         }
@@ -552,16 +557,16 @@ namespace Weighbridge
                 tareWeightTextBox.Enabled = true;
                 netWeightTextBox.Enabled = true;
             }
-            
+
             // Add event handler for weight textboxes to add and remove kg, details are in AddKG, RemoveKG and event handlers
             grossWeightTextBox.Enter += GrossWeightTextBox_Enter;
             grossWeightTextBox.Leave += GrossWeightTextBox_Leave;
-            tareWeightTextBox.Enter  += TareWeightTextBox_Enter;
-            tareWeightTextBox.Leave  += TareWeightTextBox_Leave;
+            tareWeightTextBox.Enter += TareWeightTextBox_Enter;
+            tareWeightTextBox.Leave += TareWeightTextBox_Leave;
 
             // Add event handler for weight textboxes to calculate net weight dynamically
             grossWeightTextBox.TextChanged += TareGrossWeightTextBox_TextChanged;
-            tareWeightTextBox.TextChanged  += TareGrossWeightTextBox_TextChanged;            
+            tareWeightTextBox.TextChanged += TareGrossWeightTextBox_TextChanged;
         }
         #endregion
 
@@ -589,7 +594,7 @@ namespace Weighbridge
         }
         private void GrossWeightTextBox_Leave(object sender, EventArgs e)
         {
-            if(grossWeightTextBox.Text != String.Empty)
+            if (grossWeightTextBox.Text != String.Empty)
             {
                 AddPoint(grossWeightTextBox, Convert.ToInt32(grossWeightTextBox.Text));
             }

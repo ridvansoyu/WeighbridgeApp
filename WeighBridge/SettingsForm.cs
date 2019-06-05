@@ -64,7 +64,7 @@ namespace Weighbridge
 
             ConfigurationManager.RefreshSection("appSettings");
 
-            MessageBox.Show("Ayarlar Kaydedildi!");
+            MessageBox.Show("Ayarlar Kaydedildi! Ayarların uygulanması için lütfen programı yeniden başlatın.");
         }
 
         #region Select Database Directory
@@ -73,7 +73,6 @@ namespace Weighbridge
             openFileDialog.Title = "Access Dosyası Seçiniz...";
             openFileDialog.Filter = "Access Dosyası |*.accdb*";
             openFileDialog.RestoreDirectory = true;
-            openFileDialog.ShowDialog();
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
