@@ -42,7 +42,7 @@ namespace Weighbridge
         // Create Database Connection and Command
         OleDbConnection connection;
         OleDbCommand command;
-
+        HelperFunction helperFunc = new HelperFunction();
         public WeighBridgeForm()
         {
             InitializeComponent();
@@ -77,17 +77,24 @@ namespace Weighbridge
             // Create an instance of SerialPort
             _serialPort = new SerialPort();
 
-            // Get the configurations for SerialPort from config file
-            _serialPort.PortName = config.AppSettings.Settings["PortName"].Value.ToString();
-            _serialPort.BaudRate = Convert.ToInt32(config.AppSettings.Settings["BaudRate"].Value);
-            _serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), config.AppSettings.Settings["Parity"].Value.ToString(), true);
-            _serialPort.DataBits = Convert.ToInt32(config.AppSettings.Settings["DataBits"].Value);
-            _serialPort.StopBits = (StopBits)Enum.Parse(typeof(StopBits), config.AppSettings.Settings["StopBits"].Value.ToString(), true);
-            _serialPort.Handshake = (Handshake)Enum.Parse(typeof(Handshake), config.AppSettings.Settings["Handshake"].Value.ToString(), true);
-            _serialPort.DataReceived += new SerialDataReceivedEventHandler(SerialPortDataReceived);
+            try
+            {
+                // Get the configurations for SerialPort from config file
+                _serialPort.PortName = config.AppSettings.Settings["PortName"].Value.ToString();
+                _serialPort.BaudRate = Convert.ToInt32(config.AppSettings.Settings["BaudRate"].Value);
+                _serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), config.AppSettings.Settings["Parity"].Value.ToString(), true);
+                _serialPort.DataBits = Convert.ToInt32(config.AppSettings.Settings["DataBits"].Value);
+                _serialPort.StopBits = (StopBits)Enum.Parse(typeof(StopBits), config.AppSettings.Settings["StopBits"].Value.ToString(), true);
+                _serialPort.Handshake = (Handshake)Enum.Parse(typeof(Handshake), config.AppSettings.Settings["Handshake"].Value.ToString(), true);
+                _serialPort.ReadTimeout = 500;
+                _serialPort.WriteTimeout = 500;
+            }
+            catch (System.ArgumentOutOfRangeException e)
+            {
+                helperFunc.CreateMessageBox(e.ParamName + " değeri geçerli aralığın dışındaydı. Lütfen ayarlardan " + e.ParamName + " değerini kontrol edin.");
+            }
 
-            _serialPort.ReadTimeout = 500;
-            _serialPort.WriteTimeout = 500;
+            _serialPort.DataReceived += new SerialDataReceivedEventHandler(SerialPortDataReceived);
 
             try
             {
@@ -95,17 +102,18 @@ namespace Weighbridge
             }
             catch (System.UnauthorizedAccessException)
             {
-                MessageBox.Show("Seri port açılırken bir hata meydana geldi!");
+                helperFunc.CreateMessageBox("Seri port açılırken bir hata meydana geldi. Başka bir uygulama seri portu kullanıyor olabilir.");
                 _serialPort.Close();
                 _serialPort.Dispose();
                 _serialPort.Open();
             }
             catch (System.IO.IOException)
             {
-                MessageBox.Show("COM1 Bağlantı noktası bulunamadı. " +
+                helperFunc.CreateMessageBox("COM1 Bağlantı noktası bulunamadı. " +
                                 "Program açılacaktır fakat kantar verisi görüntülenmeyecektir. " +
                                 "Lütfen kabloyu ve bağlantı noktası adını kontrol edin.");
             }
+
         }
         #endregion
 
@@ -192,7 +200,7 @@ namespace Weighbridge
             }
             catch (OleDbException e)
             {
-                MessageBox.Show("Veritabanına bağlanırken sorun yaşandı!");
+                helperFunc.CreateMessageBox("Veritabanına bağlanırken sorun yaşandı. Bağlantı açık kalmış olabilir veya veritabanı yolu doğru olmayabilir.");
             }
         }
 
@@ -219,7 +227,7 @@ namespace Weighbridge
                                     + companyTextBox.Text + "')";
             command.Connection = connection;
             command.ExecuteNonQuery();
-            MessageBox.Show("Veriler Kaydedildi!", "Bilgi");
+            helperFunc.CreateMessageBox("Veriler Kaydedildi.");
             connection.Close();
         }
         /// <summary>
@@ -239,7 +247,7 @@ namespace Weighbridge
             }
             catch (Exception)
             {
-                MessageBox.Show("Son veritabanı kaydının ID'sinin alınması için açık ve kullanılabilen bir Connection gereklidir. Bağlantının geçerli durumu: kapalı.");
+                helperFunc.CreateMessageBox("Son veritabanı kaydının ID'sinin alınması için açık ve kullanılabilen bir Connection gereklidir. Bağlantının geçerli durumu: kapalı.");
             }
             connection.Close();
 
@@ -265,14 +273,14 @@ namespace Weighbridge
             ((TextBox)sender).BackColor = Color.White;
         }
 
-        // Enter button event for changing button color when the mouse is over button
-        private void button_Enter(object sender, EventArgs e)
+        //Enter button event for changing button color when the mouse is over button
+        public void button_Enter(object sender, EventArgs e)
         {
             ((Button)sender).BackColor = Color.LemonChiffon;
         }
 
         // Leave button event for changing button color to default when the mouse cursor is leaved from button
-        private void button_Leave(object sender, EventArgs e)
+        public void button_Leave(object sender, EventArgs e)
         {
             ((Button)sender).BackColor = Color.LightBlue;
         }
@@ -481,7 +489,7 @@ namespace Weighbridge
             if (netWeight < 0)
             {
                 AddPoint(netWeightTextBox, netWeight);
-                MessageBox.Show("Net Tartım değeri 0'dan küçük olarak ölçüldü. Lütfen tartım değerlerinizi kontrol ediniz.");
+                helperFunc.CreateMessageBox("Net Tartım değeri 0'dan küçük olarak ölçüldü. Lütfen tartım değerlerinizi kontrol ediniz.");
             }
         }
         #endregion

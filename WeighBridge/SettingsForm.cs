@@ -14,6 +14,7 @@ namespace Weighbridge
 {
     public partial class SettingsForm : Form
     {
+        HelperFunction helperFunc = new HelperFunction();
         public SettingsForm()
         {
             InitializeComponent();
@@ -63,8 +64,8 @@ namespace Weighbridge
             config.Save(ConfigurationSaveMode.Modified);
 
             ConfigurationManager.RefreshSection("appSettings");
-
-            MessageBox.Show("Ayarlar Kaydedildi! Ayarların uygulanması için lütfen programı yeniden başlatın.");
+            helperFunc.CreateMessageBox("Uyarı", "Ayarlar Kaydedildi! Ayarların uygulanması için lütfen programı yeniden başlatın.");
+            //MessageBox.Show("Ayarlar Kaydedildi! Ayarların uygulanması için lütfen programı yeniden başlatın.");
         }
 
         #region Select Database Directory
